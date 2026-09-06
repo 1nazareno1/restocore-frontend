@@ -1,0 +1,1 @@
+export default function CategoriesPage() { return <main className="p-4"><h1>Categorías</h1></main> }

@@ -1,0 +1,1 @@
+export default function GeneralSettingsPage() { return <main className="p-4"><h1>Configuración General</h1></main> }

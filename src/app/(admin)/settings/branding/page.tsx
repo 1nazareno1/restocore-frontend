@@ -1,0 +1,1 @@
+export default function BrandingSettingsPage() { return <main className="p-4"><h1>Branding (Colores y Logo)</h1></main> }

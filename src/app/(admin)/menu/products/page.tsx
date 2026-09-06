@@ -1,0 +1,1 @@
+export default function ProductsPage() { return <main className="p-4"><h1>Platos</h1></main> }

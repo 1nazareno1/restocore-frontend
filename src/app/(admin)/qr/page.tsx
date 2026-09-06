@@ -1,0 +1,1 @@
+export default function QRPage() { return <main className="p-4"><h1>Código QR</h1></main> }
