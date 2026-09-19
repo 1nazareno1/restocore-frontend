@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* 1. Nuestros colores dinámicos base */
+  --brand-color: #c64010;
+  --brand-light: #fff2ec;
 }
 
 @theme inline {
@@ -10,6 +13,11 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* 👉 2. ¡ACÁ ESTÁ LA MAGIA DE TAILWIND V4! 
+     Le decimos que cree la familia de colores "brand" leyendo las variables */
+  --color-brand: var(--brand-color);
+  --color-brand-light: var(--brand-light);
 }
 
 @media (prefers-color-scheme: dark) {

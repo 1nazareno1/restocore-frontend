@@ -68,7 +68,7 @@ export default function PublicMenuPage({ params }: { params: { tenantSlug: strin
               <button 
                 className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-colors
                   ${index === 0 
-                    ? 'bg-[#c64010] text-white' 
+                    ? 'bg-brand text-white' 
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200' 
                   }`}
               >
@@ -86,7 +86,7 @@ export default function PublicMenuPage({ params }: { params: { tenantSlug: strin
             
             {/* Título de la Categoría */}
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-4 h-[2px] bg-[#c64010]"></div>
+              <div className="w-4 h-[2px] bg-brand"></div>
               <h2 className="text-xl font-bold text-gray-900">{category.name}</h2>
             </div>
             

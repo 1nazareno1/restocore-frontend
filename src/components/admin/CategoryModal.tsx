@@ -31,7 +31,7 @@ export default function CategoryModal({ isOpen, onClose }: CategoryModalProps) {
             type="text"
             placeholder="Ej: Hamburguesas"
             autoFocus
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-4 focus:ring-[#c64010]/10 focus:border-[#c64010] transition-all font-medium text-gray-900 placeholder:text-gray-400 placeholder:font-normal"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-4 focus:ring-brand/10 focus:border-brand transition-all font-medium text-gray-900 placeholder:text-gray-400 placeholder:font-normal"
           />
         </div>
 
@@ -43,7 +43,7 @@ export default function CategoryModal({ isOpen, onClose }: CategoryModalProps) {
             Cancelar
           </button>
           <button 
-            className="bg-[#c64010] text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#a8360d] transition-colors shadow-sm"
+            className="bg-brand text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#a8360d] transition-colors shadow-sm"
           >
             Crear Categoría
           </button>

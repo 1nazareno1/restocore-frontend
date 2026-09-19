@@ -10,7 +10,7 @@ export default function DashboardPage() {
 				<div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)] flex flex-col justify-between">
 					<div className="flex justify-between items-start">
 						<h3 className="text-3xl font-bold text-gray-900">12,450</h3>
-						<div className="w-10 h-10 rounded-xl bg-orange-50/80 flex items-center justify-center text-[#c64010]">
+						<div className="w-10 h-10 rounded-xl bg-orange-50/80 flex items-center justify-center text-brand">
 							<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
 						</div>
 					</div>
@@ -41,10 +41,10 @@ export default function DashboardPage() {
 
 				<div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)] flex items-center justify-between overflow-hidden relative group">
 					<div className="z-10 relative">
-						<p className="text-[10px] font-bold text-[#c64010] uppercase tracking-wider">Más Visto</p>
+						<p className="text-[10px] font-bold text-brand uppercase tracking-wider">Más Visto</p>
 						<h3 className="text-lg font-bold text-gray-900 leading-tight mt-1">Truffle<br />Risotto</h3>
 						<p className="text-xs font-bold text-gray-500 mt-3 flex items-center gap-1.5">
-							<svg className="w-4 h-4 text-[#c64010]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+							<svg className="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
 							1,204 vistas
 						</p>
 					</div>

@@ -1,28 +1,36 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Link from 'next/link';
+import { BrandingContext } from '@/components/providers/BrandingProvider';
 
 export default function BrandingSettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [brandColor, setBrandColor] = useState('#E25822');
+  
+  const { brandColor, setBrandColor, setBrandLight } = useContext(BrandingContext);
 
   const handleSave = async () => {
     setIsLoading(true);
-    // TODO: Manu -> Acá va el PUT/PATCH para actualizar la configuración visual (color, url de logo)
+    // TODO: Manu -> Acá va el PUT/PATCH para guardar el nuevo color y logo en la base de datos
     await new Promise(resolve => setTimeout(resolve, 800)); 
     setIsLoading(false);
+  };
+
+  // Función extra para calcular un color clarito automático para los fondos
+  const handleColorChange = (newColor: string) => {
+    setBrandColor(newColor);
+    // Un truquito rápido para simular el fondo claro (en producción pueden usar una librería de color o guardarlo explícitamente)
+    setBrandLight(`${newColor}15`); // Le agregamos un 15% de opacidad en hexadecimal
   };
 
   return (
     <div className="max-w-4xl py-6 font-sans">
       
       <div className="mb-8">
-        <p className="text-[10px] font-bold text-[#c64010] uppercase tracking-wider mb-1">Panel de Administración</p>
+        <p className="text-[10px] font-bold text-brand uppercase tracking-wider mb-1">Panel de Administración</p>
         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Configuración</h1>
         <p className="text-gray-500 mt-1">Administrá la información de tu restaurante, identidad visual y código QR público.</p>
       </div>
 
-      {/* Navegación por Pestañas */}
       <div className="flex border-b border-gray-100 mb-8">
         <Link 
           href="/settings/general" 
@@ -33,7 +41,7 @@ export default function BrandingSettingsPage() {
         </Link>
         <Link 
           href="/settings/branding" 
-          className="px-6 py-4 text-sm font-bold text-[#c64010] border-b-2 border-[#c64010] flex items-center gap-2"
+          className="px-6 py-4 text-sm font-bold text-brand border-b-2 border-brand flex items-center gap-2"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
           Branding
@@ -47,7 +55,6 @@ export default function BrandingSettingsPage() {
         </Link>
       </div>
 
-      {/* Contenedor del Formulario */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)] p-8">
         
         <div className="mb-8">
@@ -57,7 +64,6 @@ export default function BrandingSettingsPage() {
 
         <div className="space-y-8 max-w-2xl">
           
-          {/* Subida de Logo */}
           <div>
             <label className="block text-[12px] font-bold text-gray-700 mb-3">Logo del restaurante</label>
             <div className="w-full border-2 border-dashed border-gray-200 rounded-2xl p-6 flex items-center gap-6 bg-gray-50/50 hover:bg-gray-50 transition-colors">
@@ -74,33 +80,29 @@ export default function BrandingSettingsPage() {
             </div>
           </div>
 
-          {/* Selector de Color */}
           <div>
             <label className="block text-[12px] font-bold text-gray-700 mb-2">Color principal</label>
             <div className="flex items-center gap-4">
               
-              {/* Color Picker Nativo (Oculto visualmente pero clickeable) */}
               <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-gray-200 shadow-sm shrink-0 cursor-pointer">
                 <input 
                   type="color" 
                   value={brandColor}
-                  onChange={(e) => setBrandColor(e.target.value)}
+                  onChange={(e) => handleColorChange(e.target.value)}
                   className="absolute -inset-2 w-16 h-16 cursor-pointer"
                 />
               </div>
 
-              {/* Input Hexadecimal */}
               <div className="relative max-w-[200px]">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">#</span>
                 <input 
                   type="text" 
                   value={brandColor.replace('#', '')}
-                  onChange={(e) => setBrandColor(`#${e.target.value}`)}
-                  className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#c64010]/20 focus:border-[#c64010] text-gray-900 font-medium uppercase"
+                  onChange={(e) => handleColorChange(`#${e.target.value}`)}
+                  className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand text-gray-900 font-medium uppercase"
                 />
               </div>
 
-              {/* Círculo decorativo */}
               <div 
                 className="w-8 h-8 rounded-full border border-black/10 shadow-sm"
                 style={{ backgroundColor: brandColor }}
@@ -115,7 +117,7 @@ export default function BrandingSettingsPage() {
           <button 
             onClick={handleSave}
             disabled={isLoading}
-            className="bg-[#c64010] text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-[#a8360d] transition-colors shadow-sm disabled:opacity-70 flex items-center gap-2"
+            className="bg-brand text-white px-6 py-3 rounded-xl font-bold text-sm hover:opacity-90 transition-opacity shadow-sm disabled:opacity-70 flex items-center gap-2"
           >
             {isLoading ? (
               <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>

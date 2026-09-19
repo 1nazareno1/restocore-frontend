@@ -79,7 +79,7 @@ export default function CategoriesPage() {
         
         <button 
           onClick={handleOpenCreate}
-          className="bg-[#c64010] text-white px-5 py-2.5 rounded-lg font-bold text-sm tracking-wide hover:bg-[#a8360d] transition-colors shadow-sm flex items-center gap-2 uppercase shrink-0"
+          className="bg-brand text-white px-5 py-2.5 rounded-lg font-bold text-sm tracking-wide hover:bg-[#a8360d] transition-colors shadow-sm flex items-center gap-2 uppercase shrink-0"
         >
          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
           Agregar Categoría
@@ -89,7 +89,7 @@ export default function CategoriesPage() {
       {/* El condicional que muestra la animación o la lista real */}
       {isLoading ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)] flex flex-col items-center justify-center min-h-[350px] text-gray-400">
-          <svg className="w-8 h-8 animate-spin text-[#c64010] mb-4" fill="none" viewBox="0 0 24 24">
+          <svg className="w-8 h-8 animate-spin text-brand mb-4" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
@@ -122,7 +122,7 @@ export default function CategoriesPage() {
                   onChange={(e) => setCategoryName(e.target.value)}
                   placeholder="Ej: Hamburguesas"
                   autoFocus
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-4 focus:ring-[#c64010]/10 focus:border-[#c64010] transition-all font-medium text-gray-900 placeholder:text-gray-400"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-4 focus:ring-brand/10 focus:border-brand transition-all font-medium text-gray-900 placeholder:text-gray-400"
                 />
               </div>
 
@@ -135,7 +135,7 @@ export default function CategoriesPage() {
                 </button>
                 <button 
                   onClick={handleSave}
-                  className="bg-[#c64010] text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#a8360d] transition-colors shadow-sm"
+                  className="bg-brand text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#a8360d] transition-colors shadow-sm"
                 >
                   {modalMode === 'edit' ? 'Guardar Cambios' : 'Crear Categoría'}
                 </button>

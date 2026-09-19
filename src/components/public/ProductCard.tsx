@@ -27,7 +27,7 @@ export default function ProductCard({ name, description, price, imageUrl, featur
             {description}
           </p>
         </div>
-        <p className="mt-3 font-bold text-[#c64010]">£{price.toFixed(2)}</p>
+        <p className="mt-3 font-bold text-brand">£{price.toFixed(2)}</p>
       </div>
 
       {/* Imagen o Placeholder */}

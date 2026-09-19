@@ -1,10 +1,9 @@
-"use client"; // 👉 Agregamos esto para poder usar hooks de interactividad
-
+"use client"; 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; // 👉 Importamos el lector de rutas
+import { usePathname } from 'next/navigation'; 
+import BrandingProvider from '@/components/providers/BrandingProvider'; // 👉 1. Importamos el cerebro
 
-// 1. Centralizamos los datos del menú para no repetir código (¡Buena práctica!)
 const NAV_ITEMS = [
   {
     name: 'Inicio',
@@ -28,10 +27,10 @@ const NAV_ITEMS = [
   },
   {
     name: 'Configuración',
-    href: '/settings', 
+    href: '/settings',
     linkTarget: '/settings/general', 
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-  },,
+  },
   {
     name: 'Mi cuenta',
     href: '/account', 
@@ -40,77 +39,74 @@ const NAV_ITEMS = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname(); // 👉 Obtenemos la ruta actual (ej: "/menu/products")
+  const pathname = usePathname(); 
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] flex font-sans">
-      
-      {/* 1. SIDEBAR */}
-      <aside className="w-[260px] bg-white border-r border-gray-100 flex flex-col justify-between shadow-sm z-10 shrink-0">
-        <div>
-          <div className="h-20 flex items-center px-8">
-            <span className="text-xl font-bold text-[#c64010] flex items-center gap-2">
-              <span className="text-2xl">🍕</span> RestoCore
-            </span>
-          </div>
-          
-          <nav className="px-4 mt-2 space-y-1.5">
-            {/* 👉 Mapeamos las opciones y cambiamos los colores dinámicamente */}
-            {NAV_ITEMS.map((item) => {
-              // Chequeamos si la ruta actual coincide con la del botón (ahora "item.href" es solo "/settings")
-              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
-              
-              return (
-                <Link 
-                  key={item.href}
-                  // 👉 Si el item tiene un linkTarget, usamos ese para navegar. Si no, usamos el href normal.
-                  href={item.linkTarget || item.href} 
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
-                    isActive 
-                      ? 'bg-[#c64010] text-white shadow-[0_4px_14px_0_rgba(198,64,16,0.39)]'
-                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  {item.icon}
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
+    // 👉 2. Envolvemos toda la aplicación con el Provider
+    <BrandingProvider>
+      <div className="min-h-screen bg-[#f8f9fa] flex font-sans">
         
-        {/* Botón Cerrar Sesión */}
-        <div className="p-4 mb-4">
-           <button className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl text-gray-600 font-bold text-sm tracking-wide hover:bg-gray-50 transition-colors uppercase">
-             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-             Cerrar Sesión
-           </button>
-        </div>
-      </aside>
-
-      {/* 2. ÁREA PRINCIPAL */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="h-24 bg-[#f8f9fa] flex items-center justify-between px-8 shrink-0">
+        <aside className="w-[260px] bg-white border-r border-gray-100 flex flex-col justify-between shadow-sm z-10 shrink-0">
           <div>
-            <h2 className="text-xl font-bold text-gray-800">Bistro Gourmet</h2>
-            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5">Sucursal Principal</p>
+            <div className="h-20 flex items-center px-8">
+              <span className="text-xl font-bold text-brand flex items-center gap-2"> {/* Cambiado a text-brand */}
+                <span className="text-2xl">🍕</span> RestoCore
+              </span>
+            </div>
+            
+            <nav className="px-4 mt-2 space-y-1.5">
+              {NAV_ITEMS.map((item) => {
+                const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+                
+                return (
+                  <Link 
+                    key={item.href}
+                    href={item.linkTarget || item.href} 
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
+                      isActive 
+                        ? 'bg-brand text-white shadow-sm' // 👉 Cambiado a bg-brand
+                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' 
+                    }`}
+                  >
+                    {item.icon}
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-bold text-gray-900">Chef Marco</p>
-              <p className="text-xs text-gray-500">Administrador</p>
-            </div>
-            <div className="w-11 h-11 rounded-full bg-gray-200 overflow-hidden shadow-sm">
-              <img src="https://ui-avatars.com/api/?name=Chef+Marco&background=c64010&color=fff&bold=true" alt="Avatar" className="w-full h-full object-cover" />
-            </div>
+          <div className="p-4 mb-4">
+             <button className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl text-gray-600 font-bold text-sm tracking-wide hover:bg-gray-50 transition-colors uppercase">
+               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+               Cerrar Sesión
+             </button>
           </div>
-        </header>
+        </aside>
 
-        <main className="flex-1 overflow-auto px-8 pb-8">
-          {children}
-        </main>
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
+          <header className="h-24 bg-[#f8f9fa] flex items-center justify-between px-8 shrink-0">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Bistro Gourmet</h2>
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5">Sucursal Principal</p>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm font-bold text-gray-900">Chef Marco</p>
+                <p className="text-xs text-gray-500">Administrador</p>
+              </div>
+              <div className="w-11 h-11 rounded-full bg-gray-200 overflow-hidden shadow-sm">
+                <img src="https://ui-avatars.com/api/?name=Chef+Marco&background=c64010&color=fff&bold=true" alt="Avatar" className="w-full h-full object-cover" />
+              </div>
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-auto px-8 pb-8">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </BrandingProvider>
   );
 }

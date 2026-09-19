@@ -28,7 +28,7 @@ export default function ProductFilters({
           placeholder="Buscar platos..." 
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#c64010]/20 focus:border-[#c64010] transition-colors text-gray-900 font-medium placeholder:text-gray-400"
+          className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-colors text-gray-900 font-medium placeholder:text-gray-400"
         />
       </div>
 
@@ -36,7 +36,7 @@ export default function ProductFilters({
       <select 
         value={categoryFilter} 
         onChange={(e) => onCategoryChange(e.target.value)}
-        className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-[#c64010]/20 focus:border-[#c64010] min-w-[220px]"
+        className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand min-w-[220px]"
       >
         <option value="TODAS LAS CATEGORÍAS">TODAS LAS CATEGORÍAS</option>
         {categories.map(cat => (
