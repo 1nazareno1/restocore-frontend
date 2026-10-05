@@ -2,17 +2,22 @@
 import React, { useState, useContext } from 'react';
 import Link from 'next/link';
 import { BrandingContext } from '@/components/providers/BrandingProvider';
+import { settingsApi } from '@/lib/api';
 
 export default function BrandingSettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
   
-  const { brandColor, setBrandColor, setBrandLight } = useContext(BrandingContext);
+  const { brandColor, brandLight, setBrandColor, setBrandLight } = useContext(BrandingContext);
 
   const handleSave = async () => {
     setIsLoading(true);
-    // TODO: Manu -> Acá va el PUT/PATCH para guardar el nuevo color y logo en la base de datos
-    await new Promise(resolve => setTimeout(resolve, 800)); 
-    setIsLoading(false);
+    try {
+      await settingsApi.updateBranding({ brandColor, brandLight });
+    } catch (error) {
+      console.error("Error al guardar el branding:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Función extra para calcular un color clarito automático para los fondos

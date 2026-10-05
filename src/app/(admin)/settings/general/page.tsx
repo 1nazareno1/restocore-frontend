@@ -1,20 +1,34 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Link from 'next/link';
+import { RestaurantContext } from '@/components/providers/RestaurantProvider';
+import { settingsApi } from '@/lib/api';
 
 export default function GeneralSettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: 'Bistro Gourmet',
-    phone: '+54 9 221 456-7890',
-    address: 'Av. 7 y 50, La Plata, Buenos Aires'
-  });
+  
+
+  const { 
+    restaurantName, setRestaurantName, 
+    phone, setPhone, 
+    address, setAddress 
+  } = useContext(RestaurantContext);
 
   const handleSave = async () => {
     setIsLoading(true);
-    // TODO: Manu -> Acá va el PUT/PATCH para actualizar los datos básicos del restaurante en la BD
-    await new Promise(resolve => setTimeout(resolve, 800)); 
-    setIsLoading(false);
+    try {
+      // 👉 Llamamos a la API y le pasamos los datos del Contexto
+      await settingsApi.updateGeneral({ 
+        name: restaurantName, 
+        phone: phone, 
+        address: address 
+      });
+      // Acá podrías poner un toast o mensajito de "Guardado con éxito"
+    } catch (error) {
+      console.error("Error al guardar:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -64,8 +78,8 @@ export default function GeneralSettingsPage() {
             <label className="block text-[12px] font-bold text-gray-700 mb-2">Nombre del restaurante <span className="text-brand">*</span></label>
             <input 
               type="text" 
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              value={restaurantName} // 👉 3. Conectado al global
+              onChange={(e) => setRestaurantName(e.target.value)} // 👉 3. Escribe en el global
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand text-gray-900 font-medium" 
             />
           </div>
@@ -74,8 +88,8 @@ export default function GeneralSettingsPage() {
             <label className="block text-[12px] font-bold text-gray-700 mb-2">Teléfono/WhatsApp <span className="text-brand">*</span></label>
             <input 
               type="text" 
-              value={formData.phone}
-              onChange={(e) => setFormData({...formData, phone: e.target.value})}
+              value={phone} // 👉 3. Conectado al global
+              onChange={(e) => setPhone(e.target.value)} // 👉 3. Escribe en el global
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand text-gray-900 font-medium" 
             />
           </div>
@@ -84,8 +98,8 @@ export default function GeneralSettingsPage() {
             <label className="block text-[12px] font-bold text-gray-700 mb-2">Dirección <span className="text-brand">*</span></label>
             <input 
               type="text" 
-              value={formData.address}
-              onChange={(e) => setFormData({...formData, address: e.target.value})}
+              value={address} // 👉 3. Conectado al global
+              onChange={(e) => setAddress(e.target.value)} // 👉 3. Escribe en el global
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand text-gray-900 font-medium" 
             />
           </div>

@@ -4,14 +4,7 @@ import Modal from '@/components/ui/modal'; //
 import ProductFilters from '@/components/admin/ProductFilters';
 import ProductTable, { Product } from '@/components/admin/ProductTable';
 import Pagination from '@/components/admin/Pagination';
-
-const INITIAL_PRODUCTS: Product[] = [
-  { id: '1', name: 'Wagyu Ribeye', categories: ['Platos principales'], price: 65.00, isActive: true, image: 'https://images.unsplash.com/photo-1544025162-831514bc1113?auto=format&fit=crop&w=150&q=80' },
-  { id: '2', name: 'Truffle Risotto', categories: ['Platos principales', 'Especiales'], price: 28.00, isActive: true, image: 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=150&q=80' },
-  { id: '3', name: 'Hamburguesa Doble', categories: ['Platos principales'], price: 18.00, isActive: false, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=150&q=80' },
-  { id: '4', name: 'Empanadas Salteñas', categories: ['Entradas'], price: 12.00, isActive: true, image: 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41?auto=format&fit=crop&w=150&q=80' },
-  { id: '5', name: 'Tiramisú', categories: ['Postres'], price: 9.50, isActive: true, image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=150&q=80' },
-];
+import { productsApi } from '@/lib/api';
 
 const CATEGORIES_LIST = ['Platos principales', 'Entradas', 'Postres', 'Especiales', 'Pizzas a la leña'];
 const ITEMS_PER_PAGE = 3;
@@ -38,13 +31,15 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchInitialProducts = async () => {
       setIsLoading(true);
-      
-      // Simulamos que tarda 1 segundo
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      //  ACÁ se llena la tabla con los datos después de cargar
-      setProducts(INITIAL_PRODUCTS);
-      setIsLoading(false);
+      try {
+        const initialProducts = await productsApi.getAll();
+        //  ACÁ se llena la tabla con los datos después de cargar
+        setProducts(initialProducts);
+      } catch (error) {
+        console.error("Error al cargar los platos:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchInitialProducts();
@@ -60,7 +55,25 @@ export default function ProductsPage() {
   const paginatedProducts = filteredProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const toggleProductStatus = async (productId: string) => {
-    setProducts(products.map(p => p.id === productId ? { ...p, isActive: !p.isActive } : p));
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+
+    const newIsActive = !product.isActive;
+
+    // 1. ACTUALIZACIÓN OPTIMISTA: 
+    // Cambiamos la tabla al instante SIN poner isLoading = true. 
+    // Así el switch hace la animación hermosa en el acto.
+    setProducts(products.map(p => p.id === productId ? { ...p, isActive: newIsActive } : p));
+
+    try {
+      // 2. Le avisamos a la API por atrás, en silencio
+      await productsApi.update(productId, { ...product, isActive: newIsActive });
+    } catch (error) {
+      console.error("Error al actualizar la visibilidad del plato:", error);
+      // 3. ROLLBACK: Si la base de datos tira error, volvemos el switch a como estaba antes
+      setProducts(products.map(p => p.id === productId ? { ...p, isActive: product.isActive } : p));
+      alert("Hubo un error al guardar el cambio. Intentá de nuevo.");
+    }
   };
 
   const handleOpenCreate = () => {
@@ -83,32 +96,46 @@ export default function ProductsPage() {
   const handleSaveProduct = async () => {
     if (!formData.name.trim()) return; 
 
-    if (modalMode === 'create') {
-      const newProduct: Product = {
-        id: Date.now().toString(),
+    setIsLoading(true);
+    try {
+      const productData = {
         name: formData.name,
         categories: [formData.category],
         price: parseFloat(formData.price) || 0,
         isActive: formData.isActive,
-        image: 'https://images.unsplash.com/photo-1544025162-831514bc1113?auto=format&fit=crop&w=150&q=80'
+        image: selectedProduct?.image ?? 'https://images.unsplash.com/photo-1544025162-831514bc1113?auto=format&fit=crop&w=150&q=80'
       };
-      setProducts([newProduct, ...products]);
-    } 
-    else if (modalMode === 'edit' && selectedProduct) {
-      setProducts(products.map(p => 
-        p.id === selectedProduct.id 
-          ? { ...p, name: formData.name, price: parseFloat(formData.price) || 0, categories: [formData.category], isActive: formData.isActive }
-          : p
-      ));
+
+      if (modalMode === 'create') {
+        const newProduct = await productsApi.create(productData);
+        setProducts([newProduct, ...products]);
+      } else if (modalMode === 'edit' && selectedProduct) {
+        const updatedProduct = await productsApi.update(selectedProduct.id, productData);
+        setProducts(products.map(p => p.id === selectedProduct.id ? updatedProduct : p));
+      } else {
+        return;
+      }
+      setModalMode(null);
+    } catch (error) {
+      console.error("Error al guardar el plato:", error);
+    } finally {
+      setIsLoading(false);
     }
-    setModalMode(null);
   };
 
   const handleDeleteProduct = async () => {
     if (selectedProduct) {
-      setProducts(products.filter(p => p.id !== selectedProduct.id));
+      setIsLoading(true);
+      try {
+        await productsApi.delete(selectedProduct.id);
+        setProducts(products.filter(p => p.id !== selectedProduct.id));
+        setModalMode(null);
+      } catch (error) {
+        console.error("Error al eliminar el plato:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
-    setModalMode(null);
   };
 
   return (

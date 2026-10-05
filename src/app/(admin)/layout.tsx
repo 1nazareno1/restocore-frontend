@@ -1,8 +1,9 @@
 "use client"; 
-import React from 'react';
+import React, { useContext, useEffect } from 'react'; // 👉 Sumamos useEffect
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; 
-import BrandingProvider from '@/components/providers/BrandingProvider'; // 👉 1. Importamos el cerebro
+import { usePathname, useRouter } from 'next/navigation'; // 👉 Sumamos useRouter
+import BrandingProvider from '@/components/providers/BrandingProvider';
+import RestaurantProvider, { RestaurantContext } from '@/components/providers/RestaurantProvider';
 
 const NAV_ITEMS = [
   {
@@ -38,75 +39,111 @@ const NAV_ITEMS = [
   }
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+function AdminStructure({ children }: { children: React.ReactNode }) {
   const pathname = usePathname(); 
+  const router = useRouter(); // 👉 Inicializamos el router para poder redirigir
+  const { restaurantName } = useContext(RestaurantContext);
+
+  // TODO: Manu -> Che Manu, acá armé el "patovica" básico del frontend.
+  // Busca un JWT mockeado ('resto_token') en el localStorage apenas carga el panel.
+  // Obviamente, para producción lo ideal es que pases esta lógica al middleware.ts 
+  // de Next.js para validar la sesión con Supabase antes de renderizar la página, 
+  // pero por ahora este parche nos re sirve para probar los flujos visuales.
+  useEffect(() => {
+    const token = localStorage.getItem('resto_token');
+    if (!token) {
+      router.replace('/login');
+    }
+  }, [router]);
+
+  // TODO: Manu -> Función de Logout de prueba.
+  // Acá simplemente borro la llave del localstorage y lo pateo al login. 
+  // Cuando conectes esto de verdad, agregale acá tu llamadita a la API para invalidar
+  // la sesión o limpiar las cookies HTTP-only si vas por esa ruta.
+  const handleLogout = () => {
+    localStorage.removeItem('resto_token');
+    router.push('/login');
+  };
 
   return (
-    // 👉 2. Envolvemos toda la aplicación con el Provider
-    <BrandingProvider>
-      <div className="min-h-screen bg-[#f8f9fa] flex font-sans">
-        
-        <aside className="w-[260px] bg-white border-r border-gray-100 flex flex-col justify-between shadow-sm z-10 shrink-0">
-          <div>
-            <div className="h-20 flex items-center px-8">
-              <span className="text-xl font-bold text-brand flex items-center gap-2"> {/* Cambiado a text-brand */}
-                <span className="text-2xl">🍕</span> RestoCore
-              </span>
-            </div>
-            
-            <nav className="px-4 mt-2 space-y-1.5">
-              {NAV_ITEMS.map((item) => {
-                const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
-                
-                return (
-                  <Link 
-                    key={item.href}
-                    href={item.linkTarget || item.href} 
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
-                      isActive 
-                        ? 'bg-brand text-white shadow-sm' // 👉 Cambiado a bg-brand
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' 
-                    }`}
-                  >
-                    {item.icon}
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </nav>
+    <div className="min-h-screen bg-[#f8f9fa] flex font-sans">
+      
+      <aside className="w-[260px] bg-white border-r border-gray-100 flex flex-col justify-between shadow-sm z-10 shrink-0">
+        <div>
+          <div className="h-20 flex items-center px-8">
+            <span className="text-xl font-bold text-brand flex items-center gap-2">
+              <span className="text-2xl">🍕</span> 
+              <span className="truncate" title={restaurantName}>{restaurantName}</span>
+            </span>
           </div>
           
-          <div className="p-4 mb-4">
-             <button className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl text-gray-600 font-bold text-sm tracking-wide hover:bg-gray-50 transition-colors uppercase">
-               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-               Cerrar Sesión
-             </button>
-          </div>
-        </aside>
-
-        <div className="flex-1 flex flex-col h-screen overflow-hidden">
-          <header className="h-24 bg-[#f8f9fa] flex items-center justify-between px-8 shrink-0">
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">Bistro Gourmet</h2>
-              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5">Sucursal Principal</p>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm font-bold text-gray-900">Chef Marco</p>
-                <p className="text-xs text-gray-500">Administrador</p>
-              </div>
-              <div className="w-11 h-11 rounded-full bg-gray-200 overflow-hidden shadow-sm">
-                <img src="https://ui-avatars.com/api/?name=Chef+Marco&background=c64010&color=fff&bold=true" alt="Avatar" className="w-full h-full object-cover" />
-              </div>
-            </div>
-          </header>
-
-          <main className="flex-1 overflow-auto px-8 pb-8">
-            {children}
-          </main>
+          <nav className="px-4 mt-2 space-y-1.5">
+            {NAV_ITEMS.map((item) => {
+              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+              
+              return (
+                <Link 
+                  key={item.href}
+                  href={item.linkTarget || item.href} 
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
+                    isActive 
+                      ? 'bg-brand text-white shadow-sm'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' 
+                  }`}
+                >
+                  {item.icon}
+                  {item.name}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
+        
+        <div className="p-4 mb-4">
+            <button 
+              onClick={handleLogout} // 👉 Atamos el botón a nuestra función
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl text-gray-600 font-bold text-sm tracking-wide hover:bg-gray-50 transition-colors uppercase"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+              Cerrar Sesión
+            </button>
+        </div>
+      </aside>
+
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        <header className="h-24 bg-[#f8f9fa] flex items-center justify-between px-8 shrink-0">
+          <div className="max-w-[400px]">
+            <h2 className="text-xl font-bold text-gray-800 truncate" title={restaurantName}>{restaurantName}</h2>
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5">Sucursal Principal</p>
+          </div>
+          
+          <div className="flex items-center gap-4 shrink-0">
+            <div className="text-right">
+              <p className="text-sm font-bold text-gray-900">Chef Marco</p>
+              <p className="text-xs text-gray-500">Administrador</p>
+            </div>
+            <div className="w-11 h-11 rounded-full bg-gray-200 overflow-hidden shadow-sm">
+              <img src="https://ui-avatars.com/api/?name=Chef+Marco&background=c64010&color=fff&bold=true" alt="Avatar" className="w-full h-full object-cover" />
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto px-8 pb-8">
+          {children}
+        </main>
       </div>
-    </BrandingProvider>
+    </div>
+  );
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <RestaurantProvider>
+      <BrandingProvider>
+        <AdminStructure>
+          {children}
+        </AdminStructure>
+      </BrandingProvider>
+    </RestaurantProvider>
   );
 }

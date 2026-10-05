@@ -2,13 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '@/components/ui/modal'; 
 import CategoryList from '@/components/admin/CategoryList';
-
-const INITIAL_CATEGORIES = [
-  { id: '1', name: 'Entradas y aperitivos' },
-  { id: '2', name: 'Platos principales' },
-  { id: '3', name: 'Pizzas a la leña' },
-  { id: '4', name: 'Especiales de temporada' },
-];
+import { categoriesApi } from '@/lib/api';
 
 export default function CategoriesPage() {
   // . Arrancamos vacío y con estado de carga
@@ -23,12 +17,14 @@ export default function CategoriesPage() {
   useEffect(() => {
     const fetchInitialCategories = async () => {
       setIsLoading(true);
-      
-      // TODO: Manu -> Acá va el GET real a la base de datos
-      await new Promise(resolve => setTimeout(resolve, 800)); // Simulamos 0.8s de espera
-      
-      setCategories(INITIAL_CATEGORIES);
-      setIsLoading(false);
+      try {
+        const initialCategories = await categoriesApi.getAll();
+        setCategories(initialCategories);
+      } catch (error) {
+        console.error("Error al cargar las categorías:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchInitialCategories();
@@ -49,23 +45,36 @@ export default function CategoriesPage() {
   const handleSave = async () => {
     if (!categoryName.trim()) return;
 
-    if (modalMode === 'create') {
-      // TODO: Manu -> Acá va el POST a la base de datos
-      const newCategory = { id: Date.now().toString(), name: categoryName };
-      setCategories([...categories, newCategory]);
-    } else if (modalMode === 'edit' && selectedCategory) {
-      // TODO: Manu -> Acá va el PUT/PATCH a la base de datos
-      setCategories(categories.map(c => c.id === selectedCategory.id ? { ...c, name: categoryName } : c));
+    setIsLoading(true);
+    try {
+      if (modalMode === 'create') {
+        const newCategory = await categoriesApi.create({ name: categoryName });
+        setCategories([...categories, newCategory]);
+      } else if (modalMode === 'edit' && selectedCategory) {
+        const updatedCategory = await categoriesApi.update(selectedCategory.id, { name: categoryName });
+        setCategories(categories.map(c => c.id === selectedCategory.id ? updatedCategory : c));
+      }
+      setModalMode(null);
+    } catch (error) {
+      console.error("Error al guardar la categoría:", error);
+    } finally {
+      setIsLoading(false);
     }
-    setModalMode(null);
   };
 
   const handleDelete = async () => {
     if (selectedCategory) {
-      // TODO: Manu -> Acá va el DELETE a la base de datos
-      setCategories(categories.filter(c => c.id !== selectedCategory.id));
+      setIsLoading(true);
+      try {
+        await categoriesApi.delete(selectedCategory.id);
+        setCategories(categories.filter(c => c.id !== selectedCategory.id));
+        setModalMode(null);
+      } catch (error) {
+        console.error("Error al eliminar la categoría:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
-    setModalMode(null);
   };
 
   return (
@@ -123,7 +132,7 @@ export default function CategoriesPage() {
                   placeholder="Ej: Hamburguesas"
                   autoFocus
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-4 focus:ring-brand/10 focus:border-brand transition-all font-medium text-gray-900 placeholder:text-gray-400"
-                />
+                />  
               </div>
 
               <div className="flex items-center justify-end gap-3">
