@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
 import { RestaurantContext } from '@/components/providers/RestaurantProvider';
 import { settingsApi } from '@/lib/api';
@@ -7,25 +7,54 @@ import { settingsApi } from '@/lib/api';
 export default function GeneralSettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
   
-
   const { 
     restaurantName, setRestaurantName, 
     phone, setPhone, 
     address, setAddress 
   } = useContext(RestaurantContext);
 
+  // 1. Traer los datos iniciales al cargar la pantalla
+  useEffect(() => {
+    const fetchProfile = async () => {
+      // Usamos resto_token como figura en tu Application tab
+      const token = localStorage.getItem('resto_token');
+      if (!token) return;
+
+      try {
+        const profile = await settingsApi.getProfile(token);
+        if (profile) {
+          if (profile.name) setRestaurantName(profile.name);
+          if (profile.phoneNumber || profile.phone) setPhone(profile.phoneNumber || profile.phone);
+          if (profile.address) setAddress(profile.address);
+        }
+      } catch (error) {
+        console.error("Error al cargar el perfil del restaurante:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [setRestaurantName, setPhone, setAddress]);
+
   const handleSave = async () => {
+    // Usamos resto_token para autorizar el guardado
+    const token = localStorage.getItem('resto_token');
+    if (!token) {
+      alert("Sesión expirada. Por favor, iniciá sesión de nuevo.");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // 👉 Llamamos a la API y le pasamos los datos del Contexto
       await settingsApi.updateGeneral({ 
         name: restaurantName, 
         phone: phone, 
         address: address 
-      });
-      // Acá podrías poner un toast o mensajito de "Guardado con éxito"
+      }, token);
+      
+      alert("¡Datos guardados con éxito!");
     } catch (error) {
       console.error("Error al guardar:", error);
+      alert("Hubo un error al guardar los cambios.");
     } finally {
       setIsLoading(false);
     }
@@ -78,8 +107,8 @@ export default function GeneralSettingsPage() {
             <label className="block text-[12px] font-bold text-gray-700 mb-2">Nombre del restaurante <span className="text-brand">*</span></label>
             <input 
               type="text" 
-              value={restaurantName} // 👉 3. Conectado al global
-              onChange={(e) => setRestaurantName(e.target.value)} // 👉 3. Escribe en el global
+              value={restaurantName} 
+              onChange={(e) => setRestaurantName(e.target.value)} 
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand text-gray-900 font-medium" 
             />
           </div>
@@ -88,8 +117,8 @@ export default function GeneralSettingsPage() {
             <label className="block text-[12px] font-bold text-gray-700 mb-2">Teléfono/WhatsApp <span className="text-brand">*</span></label>
             <input 
               type="text" 
-              value={phone} // 👉 3. Conectado al global
-              onChange={(e) => setPhone(e.target.value)} // 👉 3. Escribe en el global
+              value={phone} 
+              onChange={(e) => setPhone(e.target.value)} 
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand text-gray-900 font-medium" 
             />
           </div>
@@ -98,8 +127,8 @@ export default function GeneralSettingsPage() {
             <label className="block text-[12px] font-bold text-gray-700 mb-2">Dirección <span className="text-brand">*</span></label>
             <input 
               type="text" 
-              value={address} // 👉 3. Conectado al global
-              onChange={(e) => setAddress(e.target.value)} // 👉 3. Escribe en el global
+              value={address} 
+              onChange={(e) => setAddress(e.target.value)} 
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand text-gray-900 font-medium" 
             />
           </div>

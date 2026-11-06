@@ -1,7 +1,7 @@
 "use client"; 
-import React, { useContext, useEffect } from 'react'; // 👉 Sumamos useEffect
+import React, { useContext, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation'; // 👉 Sumamos useRouter
+import { usePathname, useRouter } from 'next/navigation';
 import BrandingProvider from '@/components/providers/BrandingProvider';
 import RestaurantProvider, { RestaurantContext } from '@/components/providers/RestaurantProvider';
 
@@ -41,14 +41,10 @@ const NAV_ITEMS = [
 
 function AdminStructure({ children }: { children: React.ReactNode }) {
   const pathname = usePathname(); 
-  const router = useRouter(); // 👉 Inicializamos el router para poder redirigir
+  const router = useRouter(); 
   const { restaurantName } = useContext(RestaurantContext);
 
-  // TODO: Manu -> Che Manu, acá armé el "patovica" básico del frontend.
-  // Busca un JWT mockeado ('resto_token') en el localStorage apenas carga el panel.
-  // Obviamente, para producción lo ideal es que pases esta lógica al middleware.ts 
-  // de Next.js para validar la sesión con Supabase antes de renderizar la página, 
-  // pero por ahora este parche nos re sirve para probar los flujos visuales.
+
   useEffect(() => {
     const token = localStorage.getItem('resto_token');
     if (!token) {
@@ -56,10 +52,7 @@ function AdminStructure({ children }: { children: React.ReactNode }) {
     }
   }, [router]);
 
-  // TODO: Manu -> Función de Logout de prueba.
-  // Acá simplemente borro la llave del localstorage y lo pateo al login. 
-  // Cuando conectes esto de verdad, agregale acá tu llamadita a la API para invalidar
-  // la sesión o limpiar las cookies HTTP-only si vas por esa ruta.
+
   const handleLogout = () => {
     localStorage.removeItem('resto_token');
     router.push('/login');
@@ -70,10 +63,10 @@ function AdminStructure({ children }: { children: React.ReactNode }) {
       
       <aside className="w-[260px] bg-white border-r border-gray-100 flex flex-col justify-between shadow-sm z-10 shrink-0">
         <div>
-          <div className="h-20 flex items-center px-8">
-            <span className="text-xl font-bold text-brand flex items-center gap-2">
-              <span className="text-2xl">🍕</span> 
-              <span className="truncate" title={restaurantName}>{restaurantName}</span>
+          <div className="h-20 flex items-center px-8 w-full">
+            <span className="text-xl font-bold text-brand flex items-center gap-2 w-full overflow-hidden">
+              <span className="text-2xl shrink-0">🍕</span> 
+              <span className="truncate flex-1" title={restaurantName}>{restaurantName}</span>
             </span>
           </div>
           
@@ -101,7 +94,7 @@ function AdminStructure({ children }: { children: React.ReactNode }) {
         
         <div className="p-4 mb-4">
             <button 
-              onClick={handleLogout} // 👉 Atamos el botón a nuestra función
+              onClick={handleLogout} 
               className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl text-gray-600 font-bold text-sm tracking-wide hover:bg-gray-50 transition-colors uppercase"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
@@ -110,9 +103,9 @@ function AdminStructure({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="h-24 bg-[#f8f9fa] flex items-center justify-between px-8 shrink-0">
-          <div className="max-w-[400px]">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
+        <header className="h-24 bg-[#f8f9fa] flex items-center justify-between px-8 shrink-0 w-full overflow-hidden gap-4">
+          <div className="flex-1 min-w-0">
             <h2 className="text-xl font-bold text-gray-800 truncate" title={restaurantName}>{restaurantName}</h2>
             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5">Sucursal Principal</p>
           </div>
@@ -122,7 +115,7 @@ function AdminStructure({ children }: { children: React.ReactNode }) {
               <p className="text-sm font-bold text-gray-900">Chef Marco</p>
               <p className="text-xs text-gray-500">Administrador</p>
             </div>
-            <div className="w-11 h-11 rounded-full bg-gray-200 overflow-hidden shadow-sm">
+            <div className="w-11 h-11 rounded-full bg-gray-200 overflow-hidden shadow-sm shrink-0">
               <img src="https://ui-avatars.com/api/?name=Chef+Marco&background=c64010&color=fff&bold=true" alt="Avatar" className="w-full h-full object-cover" />
             </div>
           </div>

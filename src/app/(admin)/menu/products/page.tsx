@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import Modal from '@/components/ui/modal'; // 
+import React, { useState, useEffect, useRef } from 'react';
+import Modal from '@/components/ui/modal'; 
 import ProductFilters from '@/components/admin/ProductFilters';
 import ProductTable, { Product } from '@/components/admin/ProductTable';
 import Pagination from '@/components/admin/Pagination';
@@ -10,18 +10,23 @@ const CATEGORIES_LIST = ['Platos principales', 'Entradas', 'Postres', 'Especiale
 const ITEMS_PER_PAGE = 3;
 
 export default function ProductsPage() {
-  //  Arranca vacío para simular la base de datos
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'delete' | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
+  // 1. Agregamos la referencia y el estado para la imagen
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Le sumamos 'image' al formData inicial
   const [formData, setFormData] = useState({
     name: '',
     price: '',
     category: 'Platos principales',
-    isActive: true
+    isActive: true,
+    image: ''
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,10 +35,16 @@ export default function ProductsPage() {
 
   useEffect(() => {
     const fetchInitialProducts = async () => {
+      const token = localStorage.getItem('resto_token');
+      if (!token) {
+        console.warn("No hay token para cargar los platos");
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
-        const initialProducts = await productsApi.getAll();
-        //  ACÁ se llena la tabla con los datos después de cargar
+        const initialProducts = await productsApi.getAll(token);
         setProducts(initialProducts);
       } catch (error) {
         console.error("Error al cargar los platos:", error);
@@ -58,26 +69,46 @@ export default function ProductsPage() {
     const product = products.find(p => p.id === productId);
     if (!product) return;
 
+    const token = localStorage.getItem('resto_token');
+    if (!token) {
+      alert("Sesión expirada. Por favor, iniciá sesión de nuevo.");
+      return;
+    }
+
     const newIsActive = !product.isActive;
 
-    // 1. ACTUALIZACIÓN OPTIMISTA: 
-    // Cambiamos la tabla al instante SIN poner isLoading = true. 
-    // Así el switch hace la animación hermosa en el acto.
     setProducts(products.map(p => p.id === productId ? { ...p, isActive: newIsActive } : p));
 
     try {
-      // 2. Le avisamos a la API por atrás, en silencio
-      await productsApi.update(productId, { ...product, isActive: newIsActive });
+      const updateData = {
+        name: product.name,
+        categoryId: product.categories[0], 
+        basePrice: product.price,
+        isAvailable: newIsActive,
+        imageUrl: product.image
+      };
+      
+      await productsApi.update(productId, updateData, token);
     } catch (error) {
       console.error("Error al actualizar la visibilidad del plato:", error);
-      // 3. ROLLBACK: Si la base de datos tira error, volvemos el switch a como estaba antes
       setProducts(products.map(p => p.id === productId ? { ...p, isActive: product.isActive } : p));
       alert("Hubo un error al guardar el cambio. Intentá de nuevo.");
     }
   };
 
+  // 2. Función para procesar el archivo seleccionado
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const tempUrl = URL.createObjectURL(file);
+      setImagePreview(tempUrl);
+      setFormData(prev => ({ ...prev, image: tempUrl })); 
+    }
+  };
+
   const handleOpenCreate = () => {
-    setFormData({ name: '', price: '', category: 'Platos principales', isActive: true });
+    setFormData({ name: '', price: '', category: 'Platos principales', isActive: true, image: '' });
+    setImagePreview(null); // Limpiamos la foto previa
     setModalMode('create');
     setSelectedProduct(null);
   };
@@ -87,8 +118,10 @@ export default function ProductsPage() {
       name: product.name, 
       price: product.price.toString(), 
       category: product.categories[0], 
-      isActive: product.isActive 
+      isActive: product.isActive,
+      image: product.image
     });
+    setImagePreview(product.image); // Cargamos la foto del plato a editar
     setSelectedProduct(product);
     setModalMode('edit');
   };
@@ -96,24 +129,43 @@ export default function ProductsPage() {
   const handleSaveProduct = async () => {
     if (!formData.name.trim()) return; 
 
+    const token = localStorage.getItem('resto_token');
+    if (!token) {
+      alert("Sesión expirada. Por favor, iniciá sesión de nuevo.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const productData = {
         name: formData.name,
-        categories: [formData.category],
-        price: parseFloat(formData.price) || 0,
-        isActive: formData.isActive,
-        image: selectedProduct?.image ?? 'https://images.unsplash.com/photo-1544025162-831514bc1113?auto=format&fit=crop&w=150&q=80'
+        categoryId: formData.category,
+        basePrice: parseFloat(formData.price) || 0,
+        isAvailable: formData.isActive,
+        // Usamos la imagen subida o un placeholder por defecto
+        imageUrl: formData.image || 'https://images.unsplash.com/photo-1544025162-831514bc1113?auto=format&fit=crop&w=150&q=80'
       };
 
       if (modalMode === 'create') {
-        const newProduct = await productsApi.create(productData);
-        setProducts([newProduct, ...products]);
+        const newProduct = await productsApi.create(productData, token);
+        const mappedNewProduct = {
+          ...newProduct,
+          categories: [newProduct.categoryId],
+          price: newProduct.basePrice,
+          isActive: newProduct.isAvailable,
+          image: newProduct.imageUrl
+        };
+        setProducts([mappedNewProduct, ...products]);
       } else if (modalMode === 'edit' && selectedProduct) {
-        const updatedProduct = await productsApi.update(selectedProduct.id, productData);
-        setProducts(products.map(p => p.id === selectedProduct.id ? updatedProduct : p));
-      } else {
-        return;
+        const updatedProduct = await productsApi.update(selectedProduct.id, productData, token);
+        const mappedUpdatedProduct = {
+          ...updatedProduct,
+          categories: [updatedProduct.categoryId],
+          price: updatedProduct.basePrice,
+          isActive: updatedProduct.isAvailable,
+          image: updatedProduct.imageUrl
+        };
+        setProducts(products.map(p => p.id === selectedProduct.id ? mappedUpdatedProduct : p));
       }
       setModalMode(null);
     } catch (error) {
@@ -125,9 +177,12 @@ export default function ProductsPage() {
 
   const handleDeleteProduct = async () => {
     if (selectedProduct) {
+      const token = localStorage.getItem('resto_token');
+      if (!token) return;
+
       setIsLoading(true);
       try {
-        await productsApi.delete(selectedProduct.id);
+        await productsApi.delete(selectedProduct.id, token);
         setProducts(products.filter(p => p.id !== selectedProduct.id));
         setModalMode(null);
       } catch (error) {
@@ -165,7 +220,6 @@ export default function ProductsPage() {
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)] overflow-hidden">
         
-        {/* 4. El condicional que dibuja el "Cargando..." o la Tabla */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center min-h-[350px] text-gray-400">
             <svg className="w-8 h-8 animate-spin text-brand mb-4" fill="none" viewBox="0 0 24 24">
@@ -203,11 +257,31 @@ export default function ProductsPage() {
         >
           {(modalMode === 'create' || modalMode === 'edit') && (
             <div className="max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+              
+              {/* 3. Reemplazamos la cajita de imagen con el input oculto interactivo */}
               <div className="mb-5">
                 <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">Imagen</label>
-                <div className="w-full h-32 border-2 border-dashed border-brand/30 rounded-xl bg-orange-50/50 flex flex-col items-center justify-center text-brand hover:bg-orange-50 transition-colors cursor-pointer">
-                  <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  <span className="text-xs font-medium">Haz clic para subir una imagen</span>
+                
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleImageChange} 
+                  accept="image/png, image/jpeg, image/webp" 
+                  className="hidden" 
+                />
+
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full h-32 border-2 border-dashed border-brand/30 rounded-xl flex flex-col items-center justify-center text-brand hover:bg-orange-50 transition-colors cursor-pointer overflow-hidden relative"
+                >
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center bg-orange-50/50 w-full h-full justify-center">
+                      <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      <span className="text-xs font-medium">Haz clic para subir una imagen</span>
+                    </div>
+                  )}
                 </div>
               </div>
 

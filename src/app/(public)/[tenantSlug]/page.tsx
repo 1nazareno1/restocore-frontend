@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import ProductCard from '@/components/public/ProductCard';
+import {publicApi} from '@/lib/api';
 
 // 1. MOCK DE DATOS (Lo que Manu nos va a mandar desde la Base de Datos)
 const MOCK_DB_RESPONSE = {
@@ -37,17 +38,28 @@ export default function PublicMenuPage({ params }: { params: { tenantSlug: strin
   useEffect(() => {
     const fetchMenuFromDatabase = async () => {
       setIsLoading(true);
-      
-      // TODO: Manu -> Acá va el fetch real: fetch(`/api/v1/tenants/${params.tenantSlug}/menu`)
-      // Simulamos que la base de datos tarda 1 segundo en responder
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setMenuData(MOCK_DB_RESPONSE);
-      
-      // Aplicamos el color que vino de la base de datos al CSS global
-      document.documentElement.style.setProperty('--brand-color', MOCK_DB_RESPONSE.restaurant.brandColor);
-      
-      setIsLoading(false);
+      try {
+        // Llamada real al backend local
+        const apiData = await publicApi.getMenu(params.tenantSlug);
+
+        // Mapeo del JSON de la base de datos a tu estructura visual
+        const menuFormat = {
+          restaurant: {
+            name: apiData.tenantName,
+            brandColor: apiData.branding?.primaryColor || "#c64010",
+          },
+          // Como la base de datos todavía no tiene platos, inyectamos tus categorías falsas temporalmente.
+          // Cuando Manu agregue la carga de platos, cambiá esto a: apiData.categories
+          categories: MOCK_DB_RESPONSE.categories 
+        };
+
+        setMenuData(menuFormat);
+        document.documentElement.style.setProperty('--brand-color', menuFormat.restaurant.brandColor);
+      } catch (error) {
+        console.error("Fallo al cargar el menú:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchMenuFromDatabase();

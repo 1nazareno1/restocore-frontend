@@ -14,12 +14,21 @@ export default function CategoriesPage() {
   const [categoryName, setCategoryName] = useState('');
 
   //  El useEffect que simula la carga desde Supabase
+  // El useEffect que trae las categorías reales de la base de datos
   useEffect(() => {
     const fetchInitialCategories = async () => {
+      const token = localStorage.getItem('resto_token');
+      if (!token) {
+        console.error("No hay token de sesión");
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
-        const initialCategories = await categoriesApi.getAll();
-        setCategories(initialCategories);
+        const initialCategories = await categoriesApi.getAll(token);
+        // Aseguramos que sea un array por si el backend devuelve otra estructura
+        setCategories(Array.isArray(initialCategories) ? initialCategories : initialCategories.data || []);
       } catch (error) {
         console.error("Error al cargar las categorías:", error);
       } finally {
@@ -29,6 +38,49 @@ export default function CategoriesPage() {
 
     fetchInitialCategories();
   }, []);
+
+  const handleSave = async () => {
+    if (!categoryName.trim()) return;
+    
+    const token = localStorage.getItem('resto_token');
+    if (!token) return;
+
+    setIsLoading(true);
+    try {
+      if (modalMode === 'create') {
+        const newCategory = await categoriesApi.create({ name: categoryName }, token);
+        setCategories([...categories, newCategory]);
+      } else if (modalMode === 'edit' && selectedCategory) {
+        const updatedCategory = await categoriesApi.update(selectedCategory.id, { name: categoryName }, token);
+        setCategories(categories.map(c => c.id === selectedCategory.id ? updatedCategory : c));
+      }
+      setModalMode(null);
+    } catch (error) {
+      console.error("Error al guardar la categoría:", error);
+      alert("Hubo un problema al guardar. Verificá la consola.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedCategory) {
+      const token = localStorage.getItem('resto_token');
+      if (!token) return;
+
+      setIsLoading(true);
+      try {
+        await categoriesApi.delete(selectedCategory.id, token);
+        setCategories(categories.filter(c => c.id !== selectedCategory.id));
+        setModalMode(null);
+      } catch (error) {
+        console.error("Error al eliminar la categoría:", error);
+        alert("No se pudo eliminar la categoría.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
 
   const handleOpenCreate = () => {
     setCategoryName('');
@@ -42,40 +94,6 @@ export default function CategoriesPage() {
     setModalMode('edit');
   };
 
-  const handleSave = async () => {
-    if (!categoryName.trim()) return;
-
-    setIsLoading(true);
-    try {
-      if (modalMode === 'create') {
-        const newCategory = await categoriesApi.create({ name: categoryName });
-        setCategories([...categories, newCategory]);
-      } else if (modalMode === 'edit' && selectedCategory) {
-        const updatedCategory = await categoriesApi.update(selectedCategory.id, { name: categoryName });
-        setCategories(categories.map(c => c.id === selectedCategory.id ? updatedCategory : c));
-      }
-      setModalMode(null);
-    } catch (error) {
-      console.error("Error al guardar la categoría:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (selectedCategory) {
-      setIsLoading(true);
-      try {
-        await categoriesApi.delete(selectedCategory.id);
-        setCategories(categories.filter(c => c.id !== selectedCategory.id));
-        setModalMode(null);
-      } catch (error) {
-        console.error("Error al eliminar la categoría:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
 
   return (
     <div className="max-w-4xl py-6 font-sans">

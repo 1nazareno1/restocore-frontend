@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
 import { BrandingContext } from '@/components/providers/BrandingProvider';
 import { settingsApi } from '@/lib/api';
@@ -9,22 +9,56 @@ export default function BrandingSettingsPage() {
   
   const { brandColor, brandLight, setBrandColor, setBrandLight } = useContext(BrandingContext);
 
+  // 1. Traer los colores al cargar la pantalla
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem('resto_token');
+      if (!token) return;
+
+      try {
+        const profile = await settingsApi.getProfile(token);
+        if (profile) {
+          if (profile.brandColor) {
+            setBrandColor(profile.brandColor);
+          }
+          if (profile.brandLight) {
+            setBrandLight(profile.brandLight);
+          } else if (profile.brandColor) {
+             // Fallback: si no hay brandLight pero sí brandColor, armamos el color claro
+             setBrandLight(`${profile.brandColor}15`);
+          }
+        }
+      } catch (error) {
+        console.error("Error al cargar el branding del restaurante:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [setBrandColor, setBrandLight]);
+
   const handleSave = async () => {
+    // 2. Validar token antes de enviar
+    const token = localStorage.getItem('resto_token');
+    if (!token) {
+      alert("Sesión expirada. Por favor, iniciá sesión de nuevo.");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await settingsApi.updateBranding({ brandColor, brandLight });
+      await settingsApi.updateBranding({ brandColor, brandLight }, token);
+      alert("¡Branding guardado con éxito!");
     } catch (error) {
       console.error("Error al guardar el branding:", error);
+      alert("Hubo un error al guardar los colores.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Función extra para calcular un color clarito automático para los fondos
   const handleColorChange = (newColor: string) => {
     setBrandColor(newColor);
-    // Un truquito rápido para simular el fondo claro (en producción pueden usar una librería de color o guardarlo explícitamente)
-    setBrandLight(`${newColor}15`); // Le agregamos un 15% de opacidad en hexadecimal
+    setBrandLight(`${newColor}15`); 
   };
 
   return (

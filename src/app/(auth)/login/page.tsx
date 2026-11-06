@@ -14,17 +14,26 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // 👉 Llamamos a la API centralizada en lugar de hacer la pausa acá
+      // Llamada a la API centralizada conectada al backend .NET
       const response = await authApi.login(email, password);
       
-      // Guardamos el token que nos devuelve nuestra función mock
-      localStorage.setItem('resto_token', response.token);
+      // .NET puede serializar en camelCase o PascalCase dependiendo de su configuración
+      const token = response.token || response.Token;
+      const tenantSlug = response.tenantSlug || response.TenantSlug;
+
+      if (!token) throw new Error("No se recibió el token");
+
+      // Guardamos el token y el slug del restaurante
+      localStorage.setItem('resto_token', token);
+      if (tenantSlug) {
+        localStorage.setItem('resto_tenant_slug', tenantSlug);
+      }
       
-      // Redirigimos al panel de administración una vez logueado
+      // Redirigimos al panel de administración
       router.push('/dashboard');
     } catch (error) {
       console.error("Error al loguearse", error);
-      alert("Hubo un error al iniciar sesión");
+      alert("Credenciales inválidas o error de conexión.");
     } finally {
       setIsLoading(false);
     }

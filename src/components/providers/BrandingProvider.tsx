@@ -7,8 +7,7 @@ export default function BrandingProvider({ children }: { children: React.ReactNo
   const [brandColor, setBrandColor] = useState('#c64010');
   const [brandLight, setBrandLight] = useState('#fff2ec'); 
 
-  // 👉 LA MAGIA DEFINITIVA: Inyectamos los colores directo en el :root (HTML)
-  // Al hacerlo así, ningún componente, ni siquiera los modales, se pueden quedar sin color.
+  
   useEffect(() => {
     document.documentElement.style.setProperty('--brand-color', brandColor);
     document.documentElement.style.setProperty('--brand-light', brandLight);
