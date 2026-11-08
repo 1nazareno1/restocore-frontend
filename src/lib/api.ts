@@ -49,7 +49,7 @@ export const settingsApi = {
     });
   },
 
-  updateGeneral: async (data: { name: string; phone: string; address: string }, token: string) => {
+  updateGeneral: async (data: { name: string; phone_number: string; address: string }, token: string) => {
     return fetchApi('/admin/tenant/profile', {
       method: 'PATCH',
       body: JSON.stringify(data),

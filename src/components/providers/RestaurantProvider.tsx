@@ -1,13 +1,39 @@
 "use client";
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
+import { settingsApi } from '@/lib/api'; // 👉 Importamos la API
 
-// 👉 Acá está el famoso 'export' que Next.js no encontraba
 export const RestaurantContext = createContext<any>(null);
 
 export default function RestaurantProvider({ children }: { children: React.ReactNode }) {
-  const [restaurantName, setRestaurantName] = useState('Bistro Gourmet');
-  const [phone, setPhone] = useState('+54 9 221 456-7890');
-  const [address, setAddress] = useState('Av. 7 y 50, La Plata, Buenos Aires');
+  // Dejamos esto temporalmente mientras carga la API, podés poner 'Cargando...' si preferís
+  const [restaurantName, setRestaurantName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+
+  useEffect(() => {
+   const fetchProfile = async () => {
+      const token = localStorage.getItem('resto_token');
+      if (!token) return;
+
+      try {
+        const profile = await settingsApi.getProfile(token);
+        if (profile) {
+          if (profile.name) setRestaurantName(profile.name);
+          
+          // 👇 Acá sumamos profile.phone_number para que enganche el JSON del backend
+          if (profile.phone_number || profile.phoneNumber || profile.phone) {
+            setPhone(profile.phone_number || profile.phoneNumber || profile.phone);
+          }
+          
+          if (profile.address) setAddress(profile.address);
+        }
+      } catch (error) {
+        console.error("Error al cargar los datos del restaurante en el Provider:", error);
+      }
+    };  
+
+    fetchProfile();
+  }, []);
 
   return (
     <RestaurantContext.Provider value={{ 

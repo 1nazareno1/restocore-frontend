@@ -24,7 +24,12 @@ export default function GeneralSettingsPage() {
         const profile = await settingsApi.getProfile(token);
         if (profile) {
           if (profile.name) setRestaurantName(profile.name);
-          if (profile.phoneNumber || profile.phone) setPhone(profile.phoneNumber || profile.phone);
+          
+          // 👇 También atajamos el phone_number acá por las dudas
+          if (profile.phone_number || profile.phoneNumber || profile.phone) {
+             setPhone(profile.phone_number || profile.phoneNumber || profile.phone);
+          }
+          
           if (profile.address) setAddress(profile.address);
         }
       } catch (error) {
@@ -45,9 +50,10 @@ export default function GeneralSettingsPage() {
 
     setIsLoading(true);
     try {
+      // 👇 ACÁ ESTÁ EL CAMBIO CLAVE: C# ahora sí va a reconocer el teléfono
       await settingsApi.updateGeneral({ 
         name: restaurantName, 
-        phone: phone, 
+        phone_number: phone, 
         address: address 
       }, token);
       
